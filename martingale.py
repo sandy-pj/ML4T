@@ -235,6 +235,29 @@ def experiment2_fig5():
     plt.savefig("Figure5.png")
     plt.clf()
 
+def question_experiments():
+    # question 1
+    sum1 = 0
+    for i in range(1000):
+        sum1 += (strategy_simulate()[-1] == 80)
+    prob1 = sum1 / 1000
+    print("Q1: The estimated probability of winning $80 within 1000 sequential bets is {}".format(prob1))
+
+    #question 4
+    sum2 = 0
+    for i in range(1000):
+        sum2 += (strategy_simulate_with_limited_bankroll()[-1] == 80)
+    prob2 = sum2 / 1000
+    print("Q4: The estimated probability of winning $80 within 1000 sequential bets is {}".format(prob2))
+
+    #question 5
+    sum5 = 0
+    for i in range(1000):
+        sum5 += strategy_simulate_with_limited_bankroll()[-1]
+    res5 = sum5 / 1000
+    print("Q5: The estimated expected value of winnings after 1000 sequential bets is {}".format(sum5))
+
+
 def test_plot(alist):
     plt.plot(alist)
     plt.show()
@@ -253,6 +276,8 @@ def test_code():
     experiment1_fig3()
     experiment2_fig4()
     experiment2_fig5()
+
+    question_experiments()
     #alist = strategy_simulate_with_limited_bankroll()
     #print(alist[:30])
     #test_plot(alist)
