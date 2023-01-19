@@ -67,7 +67,7 @@ def strategy_simulate():
     result_array = np.full((1001), 0)
     episode_winnings = 0
     spin_cnt = 0
-    while episode_winnings < 80:
+    while episode_winnings < 80 and spin_cnt < 1000:
         won = False
         bet_amount = 1
 
@@ -166,7 +166,7 @@ def strategy_simulate_with_limited_bankroll():
     result_array = np.full((1001), 0)
     episode_winnings = 0
     spin_cnt = 0
-    while episode_winnings < 80 and episode_winnings > -256:
+    while episode_winnings < 80 and episode_winnings > -256 and spin_cnt < 1000:
         won = False
         bet_amount = 1
 
@@ -214,7 +214,7 @@ def experiment2_fig4():
 def experiment2_fig5():
     res = []
     for i in range(1000):
-        episode_result = strategy_simulate()
+        episode_result = strategy_simulate_with_limited_bankroll()
         res.append(episode_result)
 
     df = pd.DataFrame(res)
