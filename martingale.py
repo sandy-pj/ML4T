@@ -97,17 +97,18 @@ def experiment1_fig1():
     # plot all 10 runs on one chart
         # x axis must range from 0 to 300
         # y axis must range from -256 to 100
-
+    res = []
     for i in range(10):
         cur_episode = strategy_simulate()
-        plt.plot(cur_episode)
-        if i == 0:
-            plt.axis([0, 300, -256, 100])
-            plt.title("Figure 1: Experiment 1 - simulate 10 episodes")
-            plt.xlabel("Number of spins")
-            plt.ylabel("Total winnings")
-            plt.legend()
-            break
+        res.append(cur_episode)
+    df = pd.DataFrame(res).T
+
+    df.plot()
+    plt.axis([0, 300, -256, 100])
+    plt.title("Figure 1: Experiment 1 - simulate 10 episodes")
+    plt.xlabel("Number of spins")
+    plt.ylabel("Total winnings")
+    plt.legend()
 
     plt.savefig("Figure1.png")
     plt.clf()
@@ -118,10 +119,10 @@ def experiment1_fig2():
         episode_result = strategy_simulate()
         res.append(episode_result)
 
-    df = pd.DataFrame(res)
-    mean_line = df.mean()
-    up_boundary = df.mean()+df.std()
-    down_boundary = df.mean()-df.std()
+    df = pd.DataFrame(res).T
+    mean_line = df.mean(axis=1)
+    up_boundary = df.mean(axis=1)+df.std(axis=1)
+    down_boundary = df.mean(axis=1)-df.std(axis=1)
 
     plt.plot(mean_line, label = "mean")
     plt.plot(up_boundary, label="up boundary")
@@ -142,10 +143,10 @@ def experiment1_fig3():
         episode_result = strategy_simulate()
         res.append(episode_result)
 
-    df = pd.DataFrame(res)
-    mean_line = df.median()
-    up_boundary = df.median()+df.std()
-    down_boundary = df.median()-df.std()
+    df = pd.DataFrame(res).T
+    mean_line = df.median(axis=1)
+    up_boundary = df.median(axis=1)+df.std(axis=1)
+    down_boundary = df.median(axis=1)-df.std(axis=1)
 
     plt.plot(mean_line, label = "median")
     plt.plot(up_boundary, label="up boundary")
@@ -172,16 +173,15 @@ def strategy_simulate_with_limited_bankroll():
 
         while not won:
             won = get_spin_result(win_prob)
-            spin_cnt += 1
-
             if won:
                 episode_winnings += bet_amount
             else:
                 episode_winnings -= bet_amount
                 bet_amount = min( 2 * bet_amount, episode_winnings + 256)
 
+            spin_cnt += 1
             result_array[spin_cnt] = episode_winnings
-            # print("At spin {}: the winning amount is {}".format(spin_cnt, episode_winnings))
+            # print("At spin {}: bet amount it {}, the winning amount is {}".format(spin_cnt, bet_amount, episode_winnings))
             if spin_cnt == 1000:
                 break
     result_array[spin_cnt:] = episode_winnings
@@ -193,10 +193,10 @@ def experiment2_fig4():
         episode_result = strategy_simulate_with_limited_bankroll()
         res.append(episode_result)
 
-    df = pd.DataFrame(res)
-    mean_line = df.mean()
-    up_boundary = df.mean()+df.std()
-    down_boundary = df.mean()-df.std()
+    df = pd.DataFrame(res).T
+    mean_line = df.mean(axis=1)
+    up_boundary = df.mean(axis=1)+df.std(axis=1)
+    down_boundary = df.mean(axis=1)-df.std(axis=1)
 
     plt.plot(mean_line, label = "mean")
     plt.plot(up_boundary, label="up boundary")
@@ -217,10 +217,10 @@ def experiment2_fig5():
         episode_result = strategy_simulate_with_limited_bankroll()
         res.append(episode_result)
 
-    df = pd.DataFrame(res)
-    mean_line = df.median()
-    up_boundary = df.median()+df.std()
-    down_boundary = df.median()-df.std()
+    df = pd.DataFrame(res).T
+    mean_line = df.median(axis=1)
+    up_boundary = df.median(axis=1)+df.std(axis=1)
+    down_boundary = df.median(axis=1)-df.std(axis=1)
 
     plt.plot(mean_line, label = "median")
     plt.plot(up_boundary, label="up boundary")
@@ -253,13 +253,14 @@ def question_experiments():
     #question 5
     sum5 = 0
     for i in range(1000):
-        sum5 += strategy_simulate_with_limited_bankroll()[-1]
+        winning = strategy_simulate_with_limited_bankroll()[-1]
+        sum5 += winning
     res5 = sum5 / 1000
-    print("Q5: The estimated expected value of winnings after 1000 sequential bets is {}".format(sum5))
+    print("Q5: The estimated expected value of winnings after 1000 sequential bets is {}".format(res5))
 
 
-def test_plot(alist):
-    plt.plot(alist)
+def plot_df(df):
+    plt.plot(df)
     plt.show()
     plt.clf()
 
@@ -278,9 +279,12 @@ def test_code():
     experiment2_fig5()
 
     question_experiments()
-    #alist = strategy_simulate_with_limited_bankroll()
-    #print(alist[:30])
-    #test_plot(alist)
+
+    #res = []
+    #for i in range(100):
+    #    res.append(strategy_simulate_with_limited_bankroll())
+    #df = pd.DataFrame(res).T
+    #plot_df(df)
 
 if __name__ == "__main__":
     test_code()
