@@ -44,14 +44,14 @@ def eval_portfolio( allocs, prices ):
     n_days = 252
     port_val_df = prices * allocs
     port_val = port_val_df.sum(axis = 1)
-    commul_return = port_val.pct_change()
-    cr = commul_return.iloc[-1]
-    adr = commul_return[1:].mean()
-    sddr = commul_return[1:].std()
+    daily_return = port_val.pct_change()
+    cr = port_val.ix[-1]/port_val.ix[0]-1
+    adr = daily_return[1:].mean()
+    sddr = daily_return[1:].std()
     sr = np.sqrt(n_days) * (adr - rf)/sddr
     return [cr, adr, sddr, sr, port_val]
 
-def maximize_sharpe_ratio(allocs, prices):
+def run_sharpe_ratio(allocs, prices):
     sr = eval_portfolio(allocs,prices)[3]
     return -1.0 * sr
 
@@ -88,7 +88,8 @@ def optimize_portfolio(
     prices_all = get_data(syms, dates)  # automatically adds SPY  		  	   		  		 			  		 			     			  	 
     prices = prices_all[syms]  # only portfolio symbols  		  	   		  		 			  		 			     			  	 
     prices_SPY = prices_all["SPY"]  # only SPY, for comparison later  		  	   		  		 			  		 			     			  	 
-  		  	   		  		 			  		 			     			  	 
+    prices = prices / prices.ix[0, :]
+
     # find the allocations for the optimal portfolio  		  	   		  		 			  		 			     			  	 
     # note that the values here ARE NOT meant to be correct for a test case
     num_assets = len(syms)
@@ -96,8 +97,9 @@ def optimize_portfolio(
 
     bounds = tuple((0, 1) for x in range(num_assets))
     constraints = ({'type':'eq', 'fun': lambda x: np.sum(x)-1})
-    results = spo.minimize( maximize_sharpe_ratio, allocs, args = (prices, ), method = 'SLSQP', bounds = bounds, constraints = constraints )
+    results = spo.minimize( run_sharpe_ratio, allocs, args = (prices, ), method = 'SLSQP', bounds = bounds, constraints = constraints )
     allocs = results.x
+    print("{}: message {}".format(results.success, results.message))
     cr, adr, sddr, sr, port_val = eval_portfolio( prices, allocs )
   		  	   		  		 			  		 			     			  	 
     # Get daily portfolio value
