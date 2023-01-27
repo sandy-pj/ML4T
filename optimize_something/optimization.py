@@ -56,9 +56,9 @@ def run_sharpe_ratio(allocs, prices):
     return -1.0 * sr
 
 def optimize_portfolio(  		  	   		  		 			  		 			     			  	 
-    sd=dt.datetime(2008, 1, 1),  		  	   		  		 			  		 			     			  	 
-    ed=dt.datetime(2009, 1, 1),  		  	   		  		 			  		 			     			  	 
-    syms=["GOOG", "AAPL", "GLD", "XOM"],  		  	   		  		 			  		 			     			  	 
+    sd=dt.datetime(2008, 6, 1),
+    ed=dt.datetime(2009, 6, 1),
+    syms=['IBM', 'X', 'GLD', 'JPM'],
     gen_plot=False,  		  	   		  		 			  		 			     			  	 
 ):  		  	   		  		 			  		 			     			  	 
     """  		  	   		  		 			  		 			     			  	 
@@ -123,9 +123,9 @@ def test_code():
     This function WILL NOT be called by the auto grader.  		  	   		  		 			  		 			     			  	 
     """  		  	   		  		 			  		 			     			  	 
   		  	   		  		 			  		 			     			  	 
-    start_date = dt.datetime(2009, 1, 1)  		  	   		  		 			  		 			     			  	 
-    end_date = dt.datetime(2010, 1, 1)  		  	   		  		 			  		 			     			  	 
-    symbols = ["GOOG", "AAPL", "GLD", "XOM", "IBM"]  		  	   		  		 			  		 			     			  	 
+    start_date = dt.datetime(2008, 6, 1)
+    end_date = dt.datetime(2009, 6, 1)
+    symbols = ['IBM', 'X', 'GLD', 'JPM']
   		  	   		  		 			  		 			     			  	 
     # Assess the portfolio  		  	   		  		 			  		 			     			  	 
     allocations, cr, adr, sddr, sr = optimize_portfolio(  		  	   		  		 			  		 			     			  	 
