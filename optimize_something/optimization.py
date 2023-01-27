@@ -23,7 +23,7 @@ GT honor code violation.
   		  	   		  		 			  		 			     			  	 
 Student Name: Peilun Jiang (replace with your name)  		  	   		  		 			  		 			     			  	 
 GT User ID: pjiang49 (replace with your User ID)  		  	   		  		 			  		 			     			  	 
-GT ID: 903561681s (replace with your GT ID)  		  	   		  		 			  		 			     			  	 
+GT ID: 903561681 (replace with your GT ID)  		  	   		  		 			  		 			     			  	 
 """  		  	   		  		 			  		 			     			  	 
   		  	   		  		 			  		 			     			  	 
   		  	   		  		 			  		 			     			  	 
