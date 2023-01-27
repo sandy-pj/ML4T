@@ -21,9 +21,9 @@ GT honor code violation.
   		  	   		  		 			  		 			     			  	 
 -----do not edit anything above this line---  		  	   		  		 			  		 			     			  	 
   		  	   		  		 			  		 			     			  	 
-Student Name: Tucker Balch (replace with your name)  		  	   		  		 			  		 			     			  	 
-GT User ID: tb34 (replace with your User ID)  		  	   		  		 			  		 			     			  	 
-GT ID: 900897987 (replace with your GT ID)  		  	   		  		 			  		 			     			  	 
+Student Name: Peilun Jiang (replace with your name)  		  	   		  		 			  		 			     			  	 
+GT User ID: pjiang49 (replace with your User ID)  		  	   		  		 			  		 			     			  	 
+GT ID: 903561681s (replace with your GT ID)  		  	   		  		 			  		 			     			  	 
 """  		  	   		  		 			  		 			     			  	 
   		  	   		  		 			  		 			     			  	 
   		  	   		  		 			  		 			     			  	 
@@ -33,11 +33,28 @@ import numpy as np
   		  	   		  		 			  		 			     			  	 
 import matplotlib.pyplot as plt  		  	   		  		 			  		 			     			  	 
 import pandas as pd  		  	   		  		 			  		 			     			  	 
-from util import get_data, plot_data  		  	   		  		 			  		 			     			  	 
+from util import get_data, plot_data
+import scipy.optimize as spo
   		  	   		  		 			  		 			     			  	 
   		  	   		  		 			  		 			     			  	 
 # This is the function that will be tested by the autograder  		  	   		  		 			  		 			     			  	 
-# The student must update this code to properly implement the functionality  		  	   		  		 			  		 			     			  	 
+# The student must update this code to properly implement the functionality
+def eval_portfolio( allocs, prices ):
+    rf = 0.0
+    n_days = 252
+    port_val_df = prices * allocs
+    port_val = port_val_df.sum(axis = 1)
+    commul_return = port_val.pct_change()
+    cr = commul_return.iloc[-1]
+    adr = commul_return[1:].mean()
+    sddr = commul_return[1:].std()
+    sr = np.sqrt(n_days) * (adr - rf)/sddr
+    return [cr, adr, sddr, sr, port_val]
+
+def maximize_sharpe_ratio(allocs, prices):
+    sr = eval_portfolio(allocs,prices)[3]
+    return -1.0 * sr
+
 def optimize_portfolio(  		  	   		  		 			  		 			     			  	 
     sd=dt.datetime(2008, 1, 1),  		  	   		  		 			  		 			     			  	 
     ed=dt.datetime(2009, 1, 1),  		  	   		  		 			  		 			     			  	 
@@ -73,27 +90,28 @@ def optimize_portfolio(
     prices_SPY = prices_all["SPY"]  # only SPY, for comparison later  		  	   		  		 			  		 			     			  	 
   		  	   		  		 			  		 			     			  	 
     # find the allocations for the optimal portfolio  		  	   		  		 			  		 			     			  	 
-    # note that the values here ARE NOT meant to be correct for a test case  		  	   		  		 			  		 			     			  	 
-    allocs = np.asarray(  		  	   		  		 			  		 			     			  	 
-        [0.2, 0.2, 0.3, 0.3]  		  	   		  		 			  		 			     			  	 
-    )  # add code here to find the allocations  		  	   		  		 			  		 			     			  	 
-    cr, adr, sddr, sr = [  		  	   		  		 			  		 			     			  	 
-        0.25,  		  	   		  		 			  		 			     			  	 
-        0.001,  		  	   		  		 			  		 			     			  	 
-        0.0005,  		  	   		  		 			  		 			     			  	 
-        2.1,  		  	   		  		 			  		 			     			  	 
-    ]  # add code here to compute stats  		  	   		  		 			  		 			     			  	 
+    # note that the values here ARE NOT meant to be correct for a test case
+    num_assets = len(syms)
+    allocs = num_assets * [1.0/num_assets, ]
+
+    bounds = tuple((0, 1) for x in range(num_assets))
+    constraints = ({'type':'eq', 'fun': lambda x: np.sum(x)-1})
+    results = spo.minimize( maximize_sharpe_ratio, allocs, args = (prices, ), method = 'SLSQP', bounds = bounds, constraints = constraints )
+    allocs = results.x
+    cr, adr, sddr, sr, port_val = eval_portfolio( prices, allocs )
   		  	   		  		 			  		 			     			  	 
-    # Get daily portfolio value  		  	   		  		 			  		 			     			  	 
-    port_val = prices_SPY  # add code here to compute daily portfolio values  		  	   		  		 			  		 			     			  	 
+    # Get daily portfolio value
   		  	   		  		 			  		 			     			  	 
     # Compare daily portfolio value with SPY using a normalized plot  		  	   		  		 			  		 			     			  	 
-    if gen_plot:  		  	   		  		 			  		 			     			  	 
-        # add code to plot here  		  	   		  		 			  		 			     			  	 
+    if gen_plot:
         df_temp = pd.concat(  		  	   		  		 			  		 			     			  	 
             [port_val, prices_SPY], keys=["Portfolio", "SPY"], axis=1  		  	   		  		 			  		 			     			  	 
-        )  		  	   		  		 			  		 			     			  	 
-        pass  		  	   		  		 			  		 			     			  	 
+        )
+        df_temp = df_temp/df_temp.ix[0,:]
+        ax = df_temp.plot( title = "Normalized Prices: Portfolio vs. SPY" )
+        ax.set_ylabel("Normalized prices")
+        ax.set_xlabel("Dates")
+        plt.savefig("Figure 1.png")
   		  	   		  		 			  		 			     			  	 
     return allocs, cr, adr, sddr, sr  		  	   		  		 			  		 			     			  	 
   		  	   		  		 			  		 			     			  	 
@@ -109,7 +127,7 @@ def test_code():
   		  	   		  		 			  		 			     			  	 
     # Assess the portfolio  		  	   		  		 			  		 			     			  	 
     allocations, cr, adr, sddr, sr = optimize_portfolio(  		  	   		  		 			  		 			     			  	 
-        sd=start_date, ed=end_date, syms=symbols, gen_plot=False  		  	   		  		 			  		 			     			  	 
+        sd=start_date, ed=end_date, syms=symbols, gen_plot=True
     )  		  	   		  		 			  		 			     			  	 
   		  	   		  		 			  		 			     			  	 
     # Print statistics  		  	   		  		 			  		 			     			  	 
