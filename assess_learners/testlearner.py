@@ -27,7 +27,6 @@ import math
 import sys  		  	   		  		 			  		 			     			  	 
   		  	   		  		 			  		 			     			  	 
 import numpy as np  		  	   		  		 			  		 			     			  	 
-import pandas as pd
 import LinRegLearner as lrl
 import DTLearner as dtl
 import RTLearner as rtl
