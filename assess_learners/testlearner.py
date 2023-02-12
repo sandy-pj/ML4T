@@ -57,34 +57,124 @@ if __name__ == "__main__":
   		  	   		  		 			  		 			     			  	 
     # create a learner and train it  		  	   		  		 			  		 			     			  	 
 #    learner = lrl.LinRegLearner(verbose=True)  # create a LinRegLearner
-    for obj in [lrl.LinRegLearner,  dtl.DTLearner, rtl.RTLearner, bl.BagLearner, il.InsaneLearner]:
-        if obj == lrl.LinRegLearner:
-            learner = obj( verbose=False)
-        elif obj in [ dtl.DTLearner, rtl.RTLearner]:
-            learner = obj(leaf_size=10, verbose=False)
-        elif obj == bl.BagLearner:
-            learner = bl.BagLearner(learner=rtl.RTLearner, kwargs={'leaf_size':10}, bags=10, boost=False, verbose=False)
-        else:
-            learner = il.InsaneLearner(verbose=False)
 
-        print("Running test for learner", obj)
+    
+    ### Experiment 1
+    import matplotlib.pyplot as plt
+    rmse_res = []
+    for l_size in range(1, 100):
+        learner = dtl.DTLearner(leaf_size=l_size, verbose=False)
+
+
         learner.add_evidence(train_x, train_y)  # train it
-        print(learner.author())
 
         # evaluate in sample
         pred_y = learner.query(train_x)  # get the predictions
         rmse = math.sqrt(((train_y - pred_y) ** 2).sum() / train_y.shape[0])
-        print()
-        print("In sample results")
-        print(f"RMSE: {rmse}")
+#        print()
+#        print("In sample results")
+#        print(f"RMSE: {rmse}")
         c = np.corrcoef(pred_y, y=train_y)
-        print(f"corr: {c[0,1]}")
+#        print(f"corr: {c[0,1]}")
 
         # evaluate out of sample
         pred_y = learner.query(test_x)  # get the predictions
         rmse = math.sqrt(((test_y - pred_y) ** 2).sum() / test_y.shape[0])
-        print()
-        print("Out of sample results")
-        print(f"RMSE: {rmse}")
+        rmse_res.append(rmse)
+#        print()
+#        print("Out of sample results")
+#        print(f"RMSE: {rmse}")
         c = np.corrcoef(pred_y, y=test_y)
-        print(f"corr: {c[0,1]}")
+#        print(f"corr: {c[0,1]}")
+    plt.plot(range(1, 100), rmse_res)
+    plt.title('DTLearner RMSE with respect to leaf size')
+    plt.savefig('./DTLearner_leaf_size_rmse.png')
+#    plt.show()
+    plt.clf()
+    ### Experiment 2
+    import matplotlib.pyplot as plt
+    bag_rmse_res = []
+    for l_size in range(1, 100):
+        learner = bl.BagLearner(learner=dtl.DTLearner, kwargs={"leaf_size": l_size}, bags=10, boost=False,verbose=False)
+
+
+        learner.add_evidence(train_x, train_y)  # train it
+
+        # evaluate in sample
+        pred_y = learner.query(train_x)  # get the predictions
+        rmse = math.sqrt(((train_y - pred_y) ** 2).sum() / train_y.shape[0])
+#        print()
+#        print("In sample results")
+#        print(f"RMSE: {rmse}")
+        c = np.corrcoef(pred_y, y=train_y)
+#        print(f"corr: {c[0,1]}")
+
+        # evaluate out of sample
+        pred_y = learner.query(test_x)  # get the predictions
+        rmse = math.sqrt(((test_y - pred_y) ** 2).sum() / test_y.shape[0])
+        bag_rmse_res.append(rmse)
+#        print()
+#        print("Out of sample results")
+#        print(f"RMSE: {rmse}")
+        c = np.corrcoef(pred_y, y=test_y)
+#        print(f"corr: {c[0,1]}")
+    plt.plot(range(1, 100), rmse_res, label='DTLearner')
+    plt.plot(range(1, 100), bag_rmse_res, label='BagLearner')
+    plt.legend()
+
+    plt.title('BagLearner bags=10 RMSE with respect to leaf size')
+    plt.savefig('./BagLearner_10_bags_leaf_size_rmse.png')
+    plt.clf()
+
+    ### Experiment 3
+    import time
+    dt_times = []
+    bag_dt_r_square_res = []
+    for bag_size in range(1, 50):
+        start = time.time()
+        learner = bl.BagLearner(learner=dtl.DTLearner, kwargs={"leaf_size": 10}, bags=bag_size, boost=False,verbose=False)
+        learner.add_evidence(train_x, train_y)  # train it
+        end = time.time()
+        # evaluate in sample
+#        pred_y = learner.query(train_x)  # get the predictions
+#
+#        # evaluate out of sample
+        pred_y = learner.query(test_x)  # get the predictions
+        R_square = 1-((test_y-pred_y)**2).sum()/((test_y-np.mean(test_y)**2).sum())
+        dt_times.append(end -start)
+
+        bag_dt_r_square_res.append(R_square)
+
+
+    rt_times = []
+    bag_rt_r_square_res = []
+    for bag_size in range(1, 50):
+        start = time.time()
+        learner = bl.BagLearner(learner=rtl.RTLearner, kwargs={"leaf_size": 10}, bags=bag_size, boost=False,verbose=False)
+        learner.add_evidence(train_x, train_y)  # train it
+        end = time.time()
+
+        rt_times.append(end-start)
+        ## evaluate in sample
+        #pred_y = learner.query(train_x)  # get the predictions
+
+        ## evaluate out of sample
+        pred_y = learner.query(test_x)  # get the predictions
+        R_square = 1-((test_y-pred_y)**2).sum()/((test_y-np.mean(test_y)**2).sum())
+        bag_rt_r_square_res.append(R_square)
+
+    plt.plot(range(1, 50), dt_times, label='DTLearner')
+    plt.plot(range(1, 50), rt_times, label='RTLearner')
+    plt.legend()
+
+    plt.title('DT/RT learner leaf_size=10 train time for different bags')
+    plt.savefig('./DT_RT_bags_train_time.png')
+    plt.clf()
+
+    plt.plot(range(1, 50), bag_dt_r_square_res, label='DTLearner')
+    plt.plot(range(1, 50), bag_rt_r_square_res, label='RTLearner')
+    plt.legend()
+
+    plt.title('DT/RT learner leaf_size=10 r square for different bags')
+    plt.savefig('./DT_RT_bags_r_square.png')
+
