@@ -26,7 +26,7 @@ GT User ID: pjiang49 (replace with your User ID)
 GT ID: 903561681 (replace with your GT ID)
 """
 
-from indicator_evaluation.TheoreticallyOptimalStrategy as tos
+import indicator_evaluation.TheoreticallyOptimalStrategy as tos
 from indicator_evaluation.indicators import *
 from indicator_evaluation.marketsimcode import *
 import datetime as dt
