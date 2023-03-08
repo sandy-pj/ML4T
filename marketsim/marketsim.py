@@ -34,8 +34,7 @@ import numpy as np
 import pandas as pd  		  	   		  		 			  		 			     			  	 
 from util import get_data, plot_data  		  	   		  		 			  		 			     			  	 
   		  	   		  		 			  		 			     			  	 
-DEBUG = 1
-
+DEBUG = 0
 
 def author():
     """
