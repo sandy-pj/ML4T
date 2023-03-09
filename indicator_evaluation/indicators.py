@@ -25,7 +25,7 @@ Student Name: Peilun Jiang (replace with your name)
 GT User ID: pjiang49 (replace with your User ID)
 GT ID: 903561681 (replace with your GT ID)
 """
-
+from util import *
 
 def author():
     """
@@ -33,3 +33,13 @@ def author():
     :rtype: str
     """
     return "pjiang49"  # replace tb34 with your Georgia Tech username
+
+class Indicators(object):
+
+    def bbp(self, sym, sd, ed, plot = False):
+        """
+        return: 1-column dataframe with bbp timeseries
+        rtype: pd.DataFrame
+        """
+        df_price = get_data([sym], pd.daterange(sd, ed), addSPY = False, colname = sym)
+        
