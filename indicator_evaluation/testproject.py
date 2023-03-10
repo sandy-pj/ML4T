@@ -26,9 +26,9 @@ GT User ID: pjiang49 (replace with your User ID)
 GT ID: 903561681 (replace with your GT ID)
 """
 
-import indicator_evaluation.TheoreticallyOptimalStrategy as tos
-from indicator_evaluation.indicators import *
-from indicator_evaluation.marketsimcode import *
+import TheoreticallyOptimalStrategy as tos
+import indicators as indicators
+from util import *
 import datetime as dt
 import pandas as pd
 import os
@@ -77,45 +77,47 @@ class Report(object):
 
         df_trades_tos = tos.testPolicy(symbol = self.symbol, sd = self.sd, ed = self.ed, sv = self.sv)
         df_portval_tos = compute_portvals(df_trades_tos, start_val= self.sv, commission=0, impact=0)
-
+        df_portval_benchmark['daily_return'] = df_portval_benchmark['value'].iloc[1:]/df_portval_benchmark['value'].iloc[:-1].values - 1
+        df_portval_tos['daily_return'] = df_portval_tos['value'].iloc[1:] / df_portval_tos['value'].iloc[:-1].values - 1
         # normalize
-        df_portval_benchmark['cumulative_return'] = df_portval_benchmark / df_portval_benchmark.iloc[0]
-        df_portval_tos['cumulative_return'] = df_portval_tos / df_portval_tos.iloc[0]
-
+        df_portval_benchmark['normalized_value'] = df_portval_benchmark['value'] / df_portval_benchmark['value'].iloc[0]
+        df_portval_tos['normalized_value'] = df_portval_tos['value'] / df_portval_tos['value'].iloc[0]
 
         plt.figure(figsize=(14, 8))
-        plt.title("Cumulative Return: TOS vs. Benchmark")
+        plt.title("Normalized Value: TOS vs. Benchmark")
         plt.xlabel("Date")
-        plt.ylabel("Cumulative Return")
+        plt.ylabel("Normalized Value")
         plt.xticks(rotation=30)
         plt.grid()
-        plt.plot(df_portval_benchmark['cumulative_return'], label="benchmark", color="purple")
-        plt.plot(df_portval_tos['cumulative_return'], label="tos", color="red")
+        plt.plot(df_portval_benchmark['normalized_value'], label="benchmark", color="purple")
+        plt.plot(df_portval_tos['normalized_value'], label="tos", color="red")
         plt.legend()
-        plt.savefig("report/CumulativeReturn.png", bbox_inches='tight')
+        plt.savefig("Normalized_Value.png", bbox_inches='tight')
         plt.clf()
 
         # stats
-        benchmark_cum_ret = df_portval_benchmark['cumulative_return'][-1]
-        benchmark_dai_std = df_portval_benchmark['value'].std(axis = 0)
-        benchmark_mean = df_portval_benchmark['value'].mean(axis = 0)
+        benchmark_cum_ret = df_portval_benchmark['normalized_value'][-1]-1.0
+        benchmark_dai_std = df_portval_benchmark['daily_return'].std(axis = 0)
+        benchmark_mean = df_portval_benchmark['daily_return'].mean(axis = 0)
 
-        tos_cum_ret = df_portval_tos['cumulative_return'][-1]
-        tos_dai_std = df_portval_tos['value'].std(axis = 0)
-        tos_mean = df_portval_tos['value'].mean(axis = 0)
+        tos_cum_ret = df_portval_tos['normalized_value'][-1]-1.0
+        tos_dai_std = df_portval_tos['daily_return'].std(axis = 0)
+        tos_mean = df_portval_tos['daily_return'].mean(axis = 0)
 
-        report_dict = { 'TOS': {'cumulative_return': tos_cum_ret,
+        report_dict = { 'TOS': {'normalized_value': tos_cum_ret,
                                 'daily_std': tos_dai_std,
                                 'daily_mean': tos_mean },
-                        'Benchmark': {'cumulative_return': benchmark_cum_ret,
+                        'Benchmark': {'normalized_value': benchmark_cum_ret,
                                 'daily_std': benchmark_dai_std,
                                 'daily_mean': benchmark_mean },
                         }
         df_report = pd.DataFrame(report_dict)
-        df_report.to_csv('report/report.csv')
+        df_report.to_csv('portfolio_stats.csv')
 
 
 if __name__ == "__main__":
     df_trades = tos.testPolicy(symbol = "JPM", sd=dt.datetime(2008, 1, 1), ed=dt.datetime(2009,12,31), sv = 100000)
-    ins = Report()
-    ins.implementPartI()
+    Report().implementPartI()
+    indicators.Report().implementPartII()
+
+
