@@ -143,7 +143,7 @@ class StrategyLearner(object):
         prices['holding'] = 0
         i=0
         converged = False
-        while not converged or i < 10:
+        while not converged or i < 3:
             i += 1
             df_holding_prev = prices['holding'].copy()
             holding = 0
