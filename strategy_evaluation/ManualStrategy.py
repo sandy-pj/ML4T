@@ -32,8 +32,9 @@ import datetime as dt
 from util import get_data, plot_data
 from indicators import Indicators
 import matplotlib.pyplot as plt
+from marketsimcode import compute_portvals
 
-DEBUG = 1
+DEBUG = 0
 
 def author(self):
     return 'pjiang49'
@@ -99,12 +100,83 @@ def _build_df_orders(_df_trades, symbol):
     df_orders.drop(symbol, axis = 1, inplace = True)
     return df_orders
 
+def normalize_val(prices):
+    return prices / prices.iloc[0]
+
+def plot_trade_vline(df_orders):
+    for _, row in df_orders.iterrows():
+        if row['Order'] == 'BUY':
+            plt.axvline(row['Date'], color = 'Blue', linestyle = '--')
+        else:
+            plt.axvline(row['Date'], color='Black', linestyle = '--')
+
+
+
+
+def run():
+    # in-sample
+    df_trades = testPolicy(symbol='JPM',
+                     sd=dt.date(2008,1,1),
+                     ed=dt.date(2009,12,31),
+                     sv=100000)
+    df_orders_ms = _build_df_orders(df_trades,symbol='JPM')
+    portvals_ms = compute_portvals(df_orders_ms, start_val=100000)
+
+    # ----- value of Benchmark portfolio
+    dates = pd.date_range(dt.date(2008,1,1), dt.date(2009, 12, 31))
+    df_prices = get_data(['JPM'], dates)
+    df_prices = df_prices['JPM']
+    df_orders_bm = pd.DataFrame([[df_prices.index.min().strftime('%Y-%m-%d'), 'JPM','BUY',1000],
+                                 [df_prices.index.max().strftime('%Y-%m-%d'), 'JPM','SELL',1000],
+                                 ],
+                                columns = ['Date', 'Symbol', 'Order', 'Shares'])
+    portvals_bm = compute_portvals(df_orders_bm, start_val=100000)
+
+    portvals_ms = normalize_val(portvals_ms)
+    portvals_bm = normalize_val(portvals_bm)
+
+    chart_df = pd.concat([portvals_ms, portvals_bm], axis=1)
+    chart_df.columns = ['Manual Strategy', 'Benchmark']
+    chart_df.plot(grid=True, title='Comparing Strategies', use_index=True, color=['Red', 'Purple'])
+    plot_trade_vline(df_orders_ms)
+    plt.title("In-Sample Comparison")
+    plt.xlabel("Date")
+    plt.ylabel("Normalized Portfolio Value")
+    plt.legend()
+    plt.savefig('images/In-Sample-Comparison_Manual_Strategy_vs_Benchmark.png')
+    plt.clf()
+
+    ##### out of sample
+    df_trades = testPolicy(symbol='JPM',
+                           sd=dt.date(2010, 1, 1),
+                           ed=dt.date(2011, 12, 31),
+                           sv=100000)
+    df_orders_ms = _build_df_orders(df_trades, symbol='JPM')
+    portvals_ms = compute_portvals(df_orders_ms, start_val=100000)
+
+    # ----- value of Benchmark portfolio
+    dates = pd.date_range(dt.date(2010, 1, 1), dt.date(2011, 12, 31))
+    df_prices = get_data(['JPM'], dates)
+    df_prices = df_prices['JPM']
+    df_orders_bm = pd.DataFrame([[df_prices.index.min().strftime('%Y-%m-%d'), 'JPM', 'BUY', 1000],
+                                 [df_prices.index.max().strftime('%Y-%m-%d'), 'JPM', 'SELL', 1000],
+                                 ],
+                                columns=['Date', 'Symbol', 'Order', 'Shares'])
+    portvals_bm = compute_portvals(df_orders_bm, start_val=100000)
+
+    portvals_ms = normalize_val(portvals_ms)
+    portvals_bm = normalize_val(portvals_bm)
+
+    chart_df = pd.concat([portvals_ms, portvals_bm], axis=1)
+    chart_df.columns = ['Manual Strategy', 'Benchmark']
+    chart_df.plot(grid=True, title='Comparing Strategies', use_index=True, color=['Red', 'Purple'])
+    plot_trade_vline(df_orders_ms)
+    plt.title("Out-Of-Sample Comparison")
+    plt.xlabel("Date")
+    plt.ylabel("Normalized Portfolio Value")
+    plt.legend()
+    plt.savefig('images/Out-Of-Sample-Comparison_Manual_Strategy_vs_Benchmark.png')
+    plt.clf()
 
 if __name__ == "__main__":
-    df_trades = testPolicy(symbol='JPM',
-                     sd=dt.date(2010,1,1),
-                     ed=dt.date(2011,12,31),
-                     sv=100000)
-    df_orders = _build_df_orders(df_trades,symbol='JPM')
-    print(df_orders.head())
-
+    run()

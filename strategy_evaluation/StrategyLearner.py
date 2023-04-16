@@ -34,7 +34,8 @@ import pandas as pd
 import util as ut
 import QLearner as ql
 from marketsimcode import *
-DEBUG = True
+import numpy as np
+DEBUG = 0
 VERBOSE = False
   		  	   		  		 			  		 			     			  	 
   		  	   		  		 			  		 			     			  	 
@@ -141,12 +142,13 @@ class StrategyLearner(object):
         prices['holding'] = 0
         i=0
         converged = False
-        while not converged or i < 50:
+        while not converged or i < 10:
             i += 1
             df_holding_prev = prices['holding'].copy()
             holding = 0
+            transaction_cost = 0
             for date, price in prices.iterrows():
-                reward = holding * daily_return[symbol].loc[date]
+                reward = holding * daily_return[symbol].loc[date] - transaction_cost
                 if VERBOSE:
                     print("reward = {} | holding = {} | daily_return = {}".format(reward, holding, daily_return[symbol].loc[date]))
                 a = self.ql.query(state['state'].loc[date], reward)
@@ -156,6 +158,8 @@ class StrategyLearner(object):
                     prices['holding'].loc[date] = -1000
                 elif a == 2:
                     prices['holding'].loc[date] = 0
+                dholding = prices['holding'].loc[date] - holding
+                transaction_cost = np.abs(dholding*prices[symbol].loc[date]*self.impact)+self.commission
                 holding = prices['holding'].loc[date]
             if prices['holding'].equals(df_holding_prev):
                 converged = True
@@ -279,14 +283,19 @@ class StrategyLearner(object):
 if __name__ == "__main__":  		  	   		  		 			  		 			     			  	 
     print("One does not simply think up a strategy")
 
-    ins = StrategyLearner()
-    # ins.add_evidence(symbol='JPM',
-    #                  sd=dt.date(2008,1,1),
-    #                  ed=dt.date(2009,12,31),
-    #                  sv=100000)
-    df_trades = ins.testPolicy(symbol='JPM',
-                     sd=dt.date(2010,1,1),
-                     ed=dt.date(2011,12,31),
+    ins = StrategyLearner(impact = 0.05,commission=0)
+    df_trades = ins.add_evidence(symbol='JPM',
+                     sd=dt.date(2008,1,1),
+                     ed=dt.date(2009,12,31),
                      sv=100000)
+    # df_trades = ins.testPolicy(symbol='JPM',
+    #                  sd=dt.date(2010,1,1),
+    #                  ed=dt.date(2011,12,31),
+    #                  sv=100000)
     df_orders = ins._build_df_orders(df_trades, 'JPM')
-    print(df_orders.head())
+    # portfolio value
+    portvals = compute_portvals(df_orders,
+                                   start_val=100000,
+                                   commission=0,
+                                   impact=0.05)
+    portvals.to_csv('portvals.csv')

@@ -25,3 +25,17 @@ Student Name: Peilun Jiang (replace with your name)
 GT User ID: pjiang49 (replace with your User ID)
 GT ID: 903561681 (replace with your GT ID)
 """
+
+import ManualStrategy as ms
+import experiment1 as ex1
+import experiment2 as ex2
+def author():
+    return 'pjiang49'
+def run():
+    ms.run()
+    ex1.run()
+    ex2.run()
+
+if __name__ == "__main__":
+    run()
+

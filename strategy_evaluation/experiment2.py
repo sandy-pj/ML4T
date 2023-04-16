@@ -40,75 +40,71 @@ from matplotlib import cm as cm
 from matplotlib import style
 import matplotlib.pyplot as plt
 from util import *
-def plot_results():
-    res = []
-    for impact in [0, 0.005, 0.025, 0.05]:
+def run():
+    impact_list = [0, 0.0025, 0.0050]
+    res_port_val = []
+    res_num_trades = []
+    res_sharpe_ratio = []
+    for impact in impact_list:
         # value of StrategyLearner portfolio
-        ins_sl = sl.StrategyLearner(verbose = False, impact=impact, commission= = 0)
+        ins_sl = sl.StrategyLearner(verbose = False, impact=impact, commission=0)
         df_trades_sl = ins_sl.add_evidence(symbol='JPM',
                            sd=dt.date(2008,1,1),
                            ed=dt.date(2009,12,31),
                            sv=100000)
+        df_trades_sl = ins_sl.testPolicy(symbol='JPM',
+                                         sd=dt.date(2008, 1, 1),
+                                         ed=dt.date(2009, 12, 31),
+                                         sv=100000)
         df_orders_sl = ins_sl._build_df_orders(df_trades_sl,'JPM')
+        # portfolio value
         portvals_sl = compute_portvals(df_orders_sl,
                                        start_val = 100000,
                                        commission=0,
-                                       impact=0)
-        #print(portvals_sl)
+                                       impact=impact)
+        portvals_sl = normalize_val(portvals_sl)
+        res_port_val.append(portvals_sl)
+        # number of trades
+        res_num_trades.append(len(df_orders_sl))
+        # sharpe ratio
+        res_sharpe_ratio.append( portvals_sl.mean()/portvals_sl.std() )
 
-    # value of ManualStrategy portfolio
-    df_trades_ms = ms.testPolicy(symbol='JPM',
-                                 sd=dt.date(2010,1,1),
-                                 ed=dt.date(2011,12,31),
-                                 sv=100000)
-    df_orders_ms = ms._build_df_orders(df_trades_ms,symbol='JPM')
-    portvals_ms = compute_portvals(df_orders_ms, start_val = 100000)
-    print(portvals_ms)
+    ###
+    df_impact = pd.DataFrame( res_port_val).T
+    df_impact.columns = ['Impact 0',
+                                              'Impact 0.0025',
+                                              'Impact 0.0050']
+    df_impact.plot(grid=True, use_index=True, color=['Red', 'Blue', 'Purple','Orange'])
+    plt.title("Impact vs. Strategy Learner Performance")
+    plt.xlabel("Date")
+    plt.ylabel("Normalized Portfolio Value")
+    plt.legend()
+    plt.savefig('images/impact_vs_strategy_learner_performance.png')
+    plt.clf()
 
-    # value of Benchmark portfolio
-        # format
-        # Date, Symbol, Order, Shares
-        # 2011 - 01 - 10, AAPL, BUY, 1500
-        # 2011 - 01 - 13, AAPL, SELL, 1500
+    ###
+    plt.plot(impact_list, res_num_trades, label = 'number of trades' )
+    plt.title('Number of Trades vs. Impact')
+    plt.xlabel("Impact")
+    plt.ylabel("Number of Trades")
+    plt.legend()
+    plt.savefig('images/impact_vs_num_trades.png')
+    plt.clf()
 
-    dates = pd.date_range(dt.date(2010,1,1), dt.date(2011, 12, 31))
-    df_prices = get_data(['JPM'], dates)
-    df_prices = df_prices['JPM']
-    df_orders_bm = pd.DataFrame([[df_prices.index.min().strftime('%Y-%m-%d'), 'JPM','BUY',1000],
-                                 [df_prices.index.max().strftime('%Y-%m-%d'), 'JPM','SELL',1000],
-                                 ],
-                                columns = ['Date', 'Symbol', 'Order', 'Shares'])
-    portvals_bm = compute_portvals(df_orders_bm, start_val=100000)
-    print(portvals_bm)
-
-    # normalize
-    portvals_ms = normalize_val(portvals_ms)
-    portvals_sl = normalize_val(portvals_sl)
-    portvals_bm = normalize_val(portvals_bm)
-
-    chart_df = pd.concat([portvals_ms, portvals_sl, portvals_bm], axis=1)
-    chart_df.columns = ['Manual Strategy', 'Strategy Learner', 'Benchmark']
-    chart_df.plot(grid=True, title='Comparing Strategies', use_index=True, color=['Red', 'Blue', 'Purple'])
-    plt.show()
+    ###
+    plt.plot(impact_list, res_sharpe_ratio, label = 'Sharpe Ratio')
+    plt.title('Sharpe Ratio vs. Impact')
+    plt.xlabel("Impact")
+    plt.ylabel("Sharpe Ratio")
+    plt.legend()
+    plt.savefig('images/impact_vs_sharpe_ratio.png')
+    plt.clf()
 
 def normalize_val(prices):
-    #fill_missing_values(prices)
     return prices / prices.iloc[0]
-
-def get_the_first_trading_day_between(sd, ed, symbol):
-    dates = pd.date_range(sd, ed)
-    df_prices = get_data([symbol], dates)
-    df_prices = df_prices[symbol]
-    first_trading_date = df_prices.index.min()
-    return first_trading_date
-
-# def fill_missing_values(prices):
-#     """Fill missing values in data frame, in place."""
-#     prices.fillna(method='ffill', inplace=True)
-#     prices.fillna(method='bfill', inplace=True)
 
 def author():
     return 'pjiang49'
 
 if __name__ == "__main__":
-    plot_results()
+    run()

@@ -40,12 +40,16 @@ from matplotlib import cm as cm
 from matplotlib import style
 import matplotlib.pyplot as plt
 from util import *
-def plot_results():
+def run():
     symbol = 'JPM'
     ################### in-sample comparison ############################
     # ----- value of StrategyLearner portfolio
     ins_sl = sl.StrategyLearner(verbose = False, impact=0.0)
     df_trades_sl = ins_sl.add_evidence(symbol='JPM',
+                       sd=dt.date(2008,1,1),
+                       ed=dt.date(2009,12,31),
+                       sv=100000)
+    df_trades_sl = ins_sl.testPolicy(symbol='JPM',
                        sd=dt.date(2008,1,1),
                        ed=dt.date(2009,12,31),
                        sv=100000)
@@ -137,4 +141,4 @@ def author():
     return 'pjiang49'
 
 if __name__ == "__main__":
-    plot_results()
+    run()
