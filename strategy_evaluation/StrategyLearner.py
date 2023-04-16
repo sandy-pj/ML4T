@@ -168,7 +168,7 @@ class StrategyLearner(object):
         price['trades'] = prices['holding'].iloc[1:] - prices['holding'].iloc[:-1].values
         price['trades'].iloc[0] = 0
         df_trades = price['trades'].to_frame(symbol)
-        df_trades.to_csv('df_trades_QL_training.csv')
+        # df_trades.to_csv('df_trades_QL_training.csv')
         return df_trades
 
   		  	   		  		 			  		 			     			  	 
