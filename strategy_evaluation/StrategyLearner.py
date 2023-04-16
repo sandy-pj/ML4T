@@ -62,10 +62,11 @@ class StrategyLearner(object):
 
         # prepare for QLearner
         self.num_bins = 10
-        self.ql = ql.QLearner(num_states=1000, num_actions=3, alpha=0.2, gamma=0.9, rar=0.5, radr=0.99, dyna=0, verbose=False)
+        self.ql = ql.QLearner(num_states=self.num_bins**3, num_actions=3, alpha=0.2, gamma=0.9, rar=0.5, radr=0.99, dyna=0, verbose=False)
 
     def _discretize(self, indicators):
-        group_names = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+        #group_names = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+        group_names = [str(x) for x in range(self.num_bins)]
         _, sma_bins = pd.qcut(indicators['p_sma'], self.num_bins, retbins = True)
         _, bbp_bins = pd.qcut(indicators['bbp'], self.num_bins, retbins=True)
         _, cci_bins = pd.qcut(indicators['cci'], self.num_bins, retbins=True)
