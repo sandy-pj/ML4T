@@ -62,7 +62,7 @@ class StrategyLearner(object):
 
         # prepare for QLearner
         self.num_bins = 10
-        self.ql = ql.QLearner(num_states=self.num_bins**3, num_actions=3, alpha=0.2, gamma=0.9, rar=0.5, radr=0.99, dyna=0, verbose=False)
+        self.ql = ql.QLearner(num_states=1000, num_actions=3, alpha=0.2, gamma=0.9, rar=0.5, radr=0.99, dyna=0, verbose=False)
 
     def _discretize(self, indicators):
         #group_names = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
@@ -289,10 +289,10 @@ if __name__ == "__main__":
                      sd=dt.date(2008,1,1),
                      ed=dt.date(2009,12,31),
                      sv=100000)
-    # df_trades = ins.testPolicy(symbol='JPM',
-    #                  sd=dt.date(2010,1,1),
-    #                  ed=dt.date(2011,12,31),
-    #                  sv=100000)
+    df_trades = ins.testPolicy(symbol='JPM',
+                     sd=dt.date(2010,1,1),
+                     ed=dt.date(2011,12,31),
+                     sv=100000)
     df_orders = ins._build_df_orders(df_trades, 'JPM')
     # portfolio value
     portvals = compute_portvals(df_orders,
