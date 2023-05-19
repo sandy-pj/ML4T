@@ -205,7 +205,7 @@ class StrategyLearner(object):
         dates = pd.date_range(sd, ed)
         prices_all = ut.get_data(syms, dates)  # automatically adds SPY
         prices = prices_all[syms]  # only portfolio symbols
-        prices_SPY = prices_all["SPY"]  # only SPY, for comparison later
+        # prices_SPY = prices_all["SPY"]  # only SPY, for comparison later
         if self.verbose:
             print(prices)
 
@@ -217,13 +217,13 @@ class StrategyLearner(object):
         indicators = pd.concat([p_sma, bbp, cci], axis=1)
         indicators.columns = ['p_sma', 'bbp', 'cci']
         state = self._discretize(indicators)
-        daily_return = self._get_daily_return(prices)
+        # daily_return = self._get_daily_return(prices)
 
         # QLearner query
         df_holding = prices.copy()
         df_holding.loc[:] = 0
-        df_holding['Cash'] = 0
-        df_holding['Cash'].iloc[0] = sv
+        # df_holding['Cash'] = 0
+        # df_holding['Cash'].iloc[0] = sv
         df_trade = prices.copy()
         df_trade.loc[:] = 0
         holding_prev = 0
@@ -238,15 +238,15 @@ class StrategyLearner(object):
                 df_holding[symbol].loc[date] = 0
             trade = df_holding[symbol].loc[date] - holding_prev
             df_trade[symbol].loc[date] = trade
-            df_holding['Cash'].loc[date] = df_holding['Cash'].loc[date_prev]\
-                                           - trade * prices[symbol].loc[date] * (1-self.impact)
+            # df_holding['Cash'].loc[date] = df_holding['Cash'].loc[date_prev]\
+            #                                - trade * prices[symbol].loc[date] * (1-self.impact)
             holding_prev = df_holding[symbol].loc[date]
             date_prev = date
         # clear position at the end date
         trade = 0 - holding_prev
         df_trade[symbol].loc[prices.index[-1]] = trade
-        df_holding['Cash'].loc[prices.index[-1]] = df_holding['Cash'].loc[date_prev] \
-                                       - trade * prices[symbol].loc[prices.index[-1]] * (1 - self.impact)
+        # df_holding['Cash'].loc[prices.index[-1]] = df_holding['Cash'].loc[date_prev] \
+        #                                - trade * prices[symbol].loc[prices.index[-1]] * (1 - self.impact)
 
         if DEBUG:
             df_holding.to_csv("df_holding_QL_test.csv")
